@@ -277,7 +277,7 @@ endif
 # Target rules
 all: build
 
-build: simpleCUFFT
+build: simpleCUFFT simpleFFT
 
 check.deps:
 ifeq ($(SAMPLE_ENABLED),0)
@@ -291,6 +291,14 @@ simpleCUFFT.o:simpleCUFFT.cu
 
 simpleCUFFT: simpleCUFFT.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
+	$(EXEC) mkdir -p ../../bin/$(TARGET_ARCH)/$(TARGET_OS)/$(BUILD_TYPE)
+	$(EXEC) cp $@ ../../bin/$(TARGET_ARCH)/$(TARGET_OS)/$(BUILD_TYPE)
+
+simpleFFT.o: simpleFFT.cpp
+	$(EXEC) g++ $(INCLUDES) `pkg-config --cflags fftw3f` -o $@ -c $<
+
+simpleFFT: simpleFFT.o
+	$(EXEC) $(NVCC) $(ALL_LDFLAGS) `pkg-config --libs fftw3f` $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
 	$(EXEC) mkdir -p ../../bin/$(TARGET_ARCH)/$(TARGET_OS)/$(BUILD_TYPE)
 	$(EXEC) cp $@ ../../bin/$(TARGET_ARCH)/$(TARGET_OS)/$(BUILD_TYPE)
 
