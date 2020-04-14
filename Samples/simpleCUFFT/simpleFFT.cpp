@@ -34,6 +34,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 // includes, project
 #include <fftw3.h>
@@ -97,6 +98,10 @@ void runTest(int argc, char **argv) {
   Complex *h_padded_signal_out_inv = reinterpret_cast<Complex *>(fftwf_malloc(mem_size));
   Complex *h_padded_filter_kernel_out = reinterpret_cast<Complex *>(fftwf_malloc(mem_size));
 
+  struct timespec ts_start;
+  struct timespec ts_stop;
+  clock_gettime(CLOCK_MONOTONIC, &ts_start);
+
   // FFT plan simple API
   fftwf_plan plan = fftwf_plan_dft_1d(new_size, h_padded_signal, h_padded_signal_out,
                                       FFTW_FORWARD, FFTW_ESTIMATE);
@@ -122,6 +127,11 @@ void runTest(int argc, char **argv) {
   // Transform signal back
   printf("Transforming signal back fftExecC2C\n");
   fftwf_execute(plan_inv);
+
+  clock_gettime(CLOCK_MONOTONIC, &ts_stop);
+  float ms = (float)((ts_stop.tv_sec - ts_start.tv_sec) * 1000) +
+                     (ts_stop.tv_nsec - ts_start.tv_nsec) / 1000000.0f;
+  printf("Time = %.3f msec\n", ms);
 
   // Destroy FFT context
   fftwf_destroy_plan(plan);
