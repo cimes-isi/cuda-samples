@@ -103,6 +103,16 @@ void runTest(int argc, char **argv) {
               &h_padded_filter_kernel, FILTER_KERNEL_SIZE);
   int mem_size = sizeof(Complex) * new_size;
 
+  // Allocate CUDA events that we'll use for timing
+  cudaEvent_t start;
+  checkCudaErrors(cudaEventCreate(&start));
+
+  cudaEvent_t stop;
+  checkCudaErrors(cudaEventCreate(&stop));
+
+  // Record the start event
+  checkCudaErrors(cudaEventRecord(start, NULL));
+
   // Allocate device memory for signal
   Complex *d_signal;
   checkCudaErrors(cudaMalloc(reinterpret_cast<void **>(&d_signal), mem_size));
@@ -161,6 +171,18 @@ void runTest(int argc, char **argv) {
   Complex *h_convolved_signal = h_padded_signal;
   checkCudaErrors(cudaMemcpy(h_convolved_signal, d_signal, mem_size,
                              cudaMemcpyDeviceToHost));
+
+  // Record the stop event
+  checkCudaErrors(cudaEventRecord(stop, NULL));
+
+  // Wait for the stop event to complete
+  checkCudaErrors(cudaEventSynchronize(stop));
+
+  float msecTotal = 0.0f;
+  checkCudaErrors(cudaEventElapsedTime(&msecTotal, start, stop));
+
+  // Compute and print the performance
+  printf("Time = %.3f msec\n", msecTotal);
 
   // Allocate host memory for the convolution result
   Complex *h_convolved_signal_ref =
