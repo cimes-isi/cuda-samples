@@ -298,7 +298,7 @@ simpleFFT.o: simpleFFT.cpp
 	$(EXEC) g++ $(INCLUDES) `pkg-config --cflags fftw3f` -o $@ -c $<
 
 simpleFFT: simpleFFT.o
-	$(EXEC) $(NVCC) $(ALL_LDFLAGS) `pkg-config --libs fftw3f` $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
+	$(EXEC) g++ -o $@ $+ `pkg-config --libs fftw3f`
 	$(EXEC) mkdir -p ../../bin/$(TARGET_ARCH)/$(TARGET_OS)/$(BUILD_TYPE)
 	$(EXEC) cp $@ ../../bin/$(TARGET_ARCH)/$(TARGET_OS)/$(BUILD_TYPE)
 
