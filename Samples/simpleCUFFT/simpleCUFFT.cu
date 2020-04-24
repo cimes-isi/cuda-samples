@@ -110,6 +110,12 @@ void runTest(int argc, char **argv) {
   cudaEvent_t stop;
   checkCudaErrors(cudaEventCreate(&stop));
 
+  cudaEvent_t start_kernel;
+  checkCudaErrors(cudaEventCreate(&start_kernel));
+
+  cudaEvent_t stop_kernel;
+  checkCudaErrors(cudaEventCreate(&stop_kernel));
+
   // Record the start event
   checkCudaErrors(cudaEventRecord(start, NULL));
 
@@ -144,6 +150,9 @@ void runTest(int argc, char **argv) {
                                       &workSize, CUDA_C_32F));
   printf("Temporary buffer size %li bytes\n", workSize);
 
+  // Record the start_kernel event
+  checkCudaErrors(cudaEventRecord(start_kernel, NULL));
+
   // Transform signal and kernel
   printf("Transforming signal cufftExecC2C\n");
   checkCudaErrors(cufftExecC2C(plan, reinterpret_cast<cufftComplex *>(d_signal),
@@ -167,6 +176,9 @@ void runTest(int argc, char **argv) {
                                reinterpret_cast<cufftComplex *>(d_signal),
                                CUFFT_INVERSE));
 
+  // Record the stop_kernel event
+  checkCudaErrors(cudaEventRecord(stop_kernel, NULL));
+
   // Copy device memory to host
   Complex *h_convolved_signal = h_padded_signal;
   checkCudaErrors(cudaMemcpy(h_convolved_signal, d_signal, mem_size,
@@ -175,14 +187,19 @@ void runTest(int argc, char **argv) {
   // Record the stop event
   checkCudaErrors(cudaEventRecord(stop, NULL));
 
+  // Wait for the stop_kernel event to complete
+  checkCudaErrors(cudaEventSynchronize(stop_kernel));
   // Wait for the stop event to complete
   checkCudaErrors(cudaEventSynchronize(stop));
 
+  float msecKernel = 0.0f;
+  checkCudaErrors(cudaEventElapsedTime(&msecKernel, start_kernel, stop_kernel));
   float msecTotal = 0.0f;
   checkCudaErrors(cudaEventElapsedTime(&msecTotal, start, stop));
 
   // Compute and print the performance
-  printf("Time = %.3f msec\n", msecTotal);
+  printf("Kernel Time = %.3f msec\n", msecKernel);
+  printf("Total Time  = %.3f msec\n", msecTotal);
 
   // Allocate host memory for the convolution result
   Complex *h_convolved_signal_ref =
