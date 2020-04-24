@@ -53,8 +53,10 @@ int PadData(const Complex *, Complex **, int, const Complex *, Complex **, int);
 void runTest(int argc, char **argv);
 
 // The filter size is assumed to be a number smaller than the signal size
-#define SIGNAL_SIZE 50
-#define FILTER_KERNEL_SIZE 11
+// #define SIGNAL_SIZE 50
+// #define FILTER_KERNEL_SIZE 11
+#define SIGNAL_SIZE 1024
+#define FILTER_KERNEL_SIZE (SIGNAL_SIZE / 4)
 
 ////////////////////////////////////////////////////////////////////////////////
 // Program main
