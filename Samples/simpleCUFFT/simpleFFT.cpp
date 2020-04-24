@@ -100,6 +100,7 @@ void runTest(int argc, char **argv) {
 
   struct timespec ts_start;
   struct timespec ts_stop;
+  struct timespec ts_kernel_start;
   clock_gettime(CLOCK_MONOTONIC, &ts_start);
 
   // FFT plan simple API
@@ -113,6 +114,8 @@ void runTest(int argc, char **argv) {
                                             h_padded_filter_kernel, NULL, 1, 1,
                                             h_padded_filter_kernel_out, NULL, 1, 1,
                                             FFTW_FORWARD, FFTW_ESTIMATE);
+
+  clock_gettime(CLOCK_MONOTONIC, &ts_kernel_start);
 
   // Transform signal and kernel
   printf("Transforming signal fftExecC2C\n");
@@ -131,7 +134,10 @@ void runTest(int argc, char **argv) {
   clock_gettime(CLOCK_MONOTONIC, &ts_stop);
   float ms = (float)((ts_stop.tv_sec - ts_start.tv_sec) * 1000) +
                      (ts_stop.tv_nsec - ts_start.tv_nsec) / 1000000.0f;
-  printf("Time = %.3f msec\n", ms);
+  float ms_kernel = (float)((ts_stop.tv_sec - ts_kernel_start.tv_sec) * 1000) +
+                     (ts_stop.tv_nsec - ts_kernel_start.tv_nsec) / 1000000.0f;
+  printf("Kernel Time = %.3f msec\n", ms_kernel);
+  printf("Total Time = %.3f msec\n", ms);
 
   // Destroy FFT context
   fftwf_destroy_plan(plan);
