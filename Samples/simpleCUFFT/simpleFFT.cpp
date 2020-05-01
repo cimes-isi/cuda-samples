@@ -36,6 +36,10 @@
 #include <string.h>
 #include <time.h>
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 // includes, project
 #include <fftw3.h>
 
@@ -68,6 +72,14 @@ int main(int argc, char **argv) { runTest(argc, argv); }
 ////////////////////////////////////////////////////////////////////////////////
 void runTest(int argc, char **argv) {
   printf("[simpleFFT] is starting...\n");
+
+#ifdef _OPENMP
+  if (!fftwf_init_threads()) {
+    fprintf(stderr, "fftwf_init_threads: failed\n");
+    exit(EXIT_FAILURE);
+  }
+  fftwf_plan_with_nthreads(omp_get_max_threads());
+#endif
 
   // Allocate host memory for the signal
   Complex *h_signal = reinterpret_cast<Complex *>(fftwf_malloc(sizeof(Complex) * SIGNAL_SIZE));

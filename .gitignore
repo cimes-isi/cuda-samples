@@ -13,7 +13,9 @@ Samples/simpleCUBLAS/simpleCUBLAS
 Samples/simpleCUFFT/simpleCUFFT
 Samples/simpleCUFFT/simpleCUFFT2D
 Samples/simpleCUFFT/simpleFFT
+Samples/simpleCUFFT/simpleFFT-omp
 Samples/simpleCUFFT/simpleFFT2D
+Samples/simpleCUFFT/simpleFFT2D-omp
 Samples/simpleVoteIntrinsics/simpleVoteIntrinsics
 Samples/vectorAdd_nvrtc/vectorAdd_nvrtc
 Samples/warpAggregatedAtomicsCG/warpAggregatedAtomicsCG

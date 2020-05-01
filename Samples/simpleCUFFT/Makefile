@@ -277,7 +277,7 @@ endif
 # Target rules
 all: build
 
-build: simpleCUFFT simpleFFT simpleCUFFT2D simpleFFT2D
+build: simpleCUFFT simpleFFT simpleFFT-omp simpleCUFFT2D simpleFFT2D simpleFFT2D-omp
 
 check.deps:
 ifeq ($(SAMPLE_ENABLED),0)
@@ -302,6 +302,14 @@ simpleFFT: simpleFFT.o
 	$(EXEC) mkdir -p ../../bin/$(TARGET_ARCH)/$(TARGET_OS)/$(BUILD_TYPE)
 	$(EXEC) cp $@ ../../bin/$(TARGET_ARCH)/$(TARGET_OS)/$(BUILD_TYPE)
 
+simpleFFT-omp.o: simpleFFT.cpp
+	$(EXEC) g++ $(INCLUDES) `pkg-config --cflags fftw3f` -fopenmp -o $@ -c $<
+
+simpleFFT-omp: simpleFFT-omp.o
+	$(EXEC) g++ -o $@ $+ -fopenmp -lfftw3f_omp `pkg-config --libs fftw3f`
+	$(EXEC) mkdir -p ../../bin/$(TARGET_ARCH)/$(TARGET_OS)/$(BUILD_TYPE)
+	$(EXEC) cp $@ ../../bin/$(TARGET_ARCH)/$(TARGET_OS)/$(BUILD_TYPE)
+
 simpleCUFFT2D.o:simpleCUFFT2D.cu
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
@@ -315,6 +323,14 @@ simpleFFT2D.o: simpleFFT2D.cpp
 
 simpleFFT2D: simpleFFT2D.o
 	$(EXEC) g++ -o $@ $+ `pkg-config --libs fftw3f`
+	$(EXEC) mkdir -p ../../bin/$(TARGET_ARCH)/$(TARGET_OS)/$(BUILD_TYPE)
+	$(EXEC) cp $@ ../../bin/$(TARGET_ARCH)/$(TARGET_OS)/$(BUILD_TYPE)
+
+simpleFFT2D-omp.o: simpleFFT2D.cpp
+	$(EXEC) g++ $(INCLUDES) `pkg-config --cflags fftw3f` -fopenmp -o $@ -c $<
+
+simpleFFT2D-omp: simpleFFT2D-omp.o
+	$(EXEC) g++ -o $@ $+ -fopenmp -lfftw3f_omp `pkg-config --libs fftw3f`
 	$(EXEC) mkdir -p ../../bin/$(TARGET_ARCH)/$(TARGET_OS)/$(BUILD_TYPE)
 	$(EXEC) cp $@ ../../bin/$(TARGET_ARCH)/$(TARGET_OS)/$(BUILD_TYPE)
 
