@@ -50,9 +50,6 @@ typedef float complex Complex;
 // declaration, forward
 void runTest(int argc, char **argv);
 
-#define SIGNAL_SIZE_X 64
-#define SIGNAL_SIZE_Y 64
-
 ////////////////////////////////////////////////////////////////////////////////
 // Program main
 ////////////////////////////////////////////////////////////////////////////////
@@ -64,6 +61,17 @@ int main(int argc, char **argv) { runTest(argc, argv); }
 void runTest(int argc, char **argv) {
   printf("[simpleFFT2D] is starting...\n");
 
+  int signal_size_x = 64;
+  if (argc > 1) {
+    signal_size_x = atoi(argv[1]);
+  }
+  int signal_size_y = signal_size_x;
+  if (argc > 2) {
+    signal_size_y = atoi(argv[2]);
+  }
+  printf("Signal size X = %zu\n", signal_size_x);
+  printf("Signal size Y = %zu\n", signal_size_y);
+
 #ifdef _OPENMP
   if (!fftwf_init_threads()) {
     fprintf(stderr, "fftwf_init_threads: failed\n");
@@ -73,11 +81,11 @@ void runTest(int argc, char **argv) {
 #endif
 
   // Allocate host memory for the signal
-  const int mem_size = sizeof(Complex) * SIGNAL_SIZE_X * SIGNAL_SIZE_Y;
+  const int mem_size = sizeof(Complex) * signal_size_x * signal_size_y;
   Complex *h_signal = reinterpret_cast<Complex *>(fftwf_malloc(mem_size));
 
   // Initialize the memory for the signal
-  for (unsigned int i = 0; i < SIGNAL_SIZE_X * SIGNAL_SIZE_Y; ++i) {
+  for (unsigned int i = 0; i < signal_size_x * signal_size_y; ++i) {
     // h_signal[i].x = rand() / (float)RAND_MAX;
     // h_signal[i].y = 0;
     h_signal[i] = rand() / (float)RAND_MAX + 0i;
@@ -92,9 +100,9 @@ void runTest(int argc, char **argv) {
   clock_gettime(CLOCK_MONOTONIC, &ts_start);
 
   // FFT plan simple API
-  fftwf_plan plan = fftwf_plan_dft_2d(SIGNAL_SIZE_X, SIGNAL_SIZE_Y, h_signal, h_signal_out,
+  fftwf_plan plan = fftwf_plan_dft_2d(signal_size_x, signal_size_y, h_signal, h_signal_out,
                                       FFTW_FORWARD, FFTW_ESTIMATE);
-  fftwf_plan plan_inv = fftwf_plan_dft_2d(SIGNAL_SIZE_X, SIGNAL_SIZE_Y, h_signal_out, h_signal_out_inv,
+  fftwf_plan plan_inv = fftwf_plan_dft_2d(signal_size_x, signal_size_y, h_signal_out, h_signal_out_inv,
                                           FFTW_BACKWARD, FFTW_ESTIMATE);
 
   clock_gettime(CLOCK_MONOTONIC, &ts_kernel_start);

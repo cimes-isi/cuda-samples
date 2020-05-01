@@ -56,12 +56,6 @@ int PadData(const Complex *, Complex **, int, const Complex *, Complex **, int);
 // declaration, forward
 void runTest(int argc, char **argv);
 
-// The filter size is assumed to be a number smaller than the signal size
-// #define SIGNAL_SIZE 50
-// #define FILTER_KERNEL_SIZE 11
-#define SIGNAL_SIZE 1024
-#define FILTER_KERNEL_SIZE (SIGNAL_SIZE / 4)
-
 ////////////////////////////////////////////////////////////////////////////////
 // Program main
 ////////////////////////////////////////////////////////////////////////////////
@@ -73,6 +67,15 @@ int main(int argc, char **argv) { runTest(argc, argv); }
 void runTest(int argc, char **argv) {
   printf("[simpleFFT] is starting...\n");
 
+  int signal_size = 1024;
+  if (argc > 1) {
+    signal_size = atoi(argv[1]);
+  }
+  // The filter size is assumed to be a number smaller than the signal size
+  int filter_kernel_size = signal_size >> 2;
+  printf("Signal size = %zu\n", signal_size);
+  printf("Filter size = %zu\n", filter_kernel_size);
+
 #ifdef _OPENMP
   if (!fftwf_init_threads()) {
     fprintf(stderr, "fftwf_init_threads: failed\n");
@@ -82,20 +85,20 @@ void runTest(int argc, char **argv) {
 #endif
 
   // Allocate host memory for the signal
-  Complex *h_signal = reinterpret_cast<Complex *>(fftwf_malloc(sizeof(Complex) * SIGNAL_SIZE));
+  Complex *h_signal = reinterpret_cast<Complex *>(fftwf_malloc(sizeof(Complex) * signal_size));
 
   // Initialize the memory for the signal
-  for (unsigned int i = 0; i < SIGNAL_SIZE; ++i) {
+  for (unsigned int i = 0; i < signal_size; ++i) {
     // h_signal[i].x = rand() / (float)RAND_MAX;
     // h_signal[i].y = 0;
     h_signal[i] = rand() / (float)RAND_MAX + 0i;
   }
 
   // Allocate host memory for the filter
-  Complex *h_filter_kernel = reinterpret_cast<Complex *>(fftwf_malloc(sizeof(Complex) * FILTER_KERNEL_SIZE));
+  Complex *h_filter_kernel = reinterpret_cast<Complex *>(fftwf_malloc(sizeof(Complex) * filter_kernel_size));
 
   // Initialize the memory for the filter
-  for (unsigned int i = 0; i < FILTER_KERNEL_SIZE; ++i) {
+  for (unsigned int i = 0; i < filter_kernel_size; ++i) {
     h_signal[i] = rand() / (float)RAND_MAX + 0i;
     // h_filter_kernel[i].x = rand() / (float)RAND_MAX;
     // h_filter_kernel[i].y = 0;
@@ -105,8 +108,8 @@ void runTest(int argc, char **argv) {
   Complex *h_padded_signal;
   Complex *h_padded_filter_kernel;
   int new_size =
-      PadData(h_signal, &h_padded_signal, SIGNAL_SIZE, h_filter_kernel,
-              &h_padded_filter_kernel, FILTER_KERNEL_SIZE);
+      PadData(h_signal, &h_padded_signal, signal_size, h_filter_kernel,
+              &h_padded_filter_kernel, filter_kernel_size);
   int mem_size = sizeof(Complex) * new_size;
   Complex *h_padded_signal_out = reinterpret_cast<Complex *>(fftwf_malloc(mem_size));
   Complex *h_padded_signal_out_inv = reinterpret_cast<Complex *>(fftwf_malloc(mem_size));
