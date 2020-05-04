@@ -64,6 +64,8 @@ void runTest(int argc, char **argv);
 #define SIGNAL_SIZE 1024
 #define FILTER_KERNEL_SIZE (SIGNAL_SIZE / 4)
 
+#define DO_CHECK_RESULT 1
+
 ////////////////////////////////////////////////////////////////////////////////
 // Program main
 ////////////////////////////////////////////////////////////////////////////////
@@ -203,6 +205,8 @@ void runTest(int argc, char **argv) {
   printf("Kernel Time = %.3f msec\n", msecKernel);
   printf("Total Time  = %.3f msec\n", msecTotal);
 
+  bool bTestResult = true;
+#if DO_CHECK_RESULT
   // Allocate host memory for the convolution result
   Complex *h_convolved_signal_ref =
       reinterpret_cast<Complex *>(malloc(sizeof(Complex) * SIGNAL_SIZE));
@@ -212,9 +216,11 @@ void runTest(int argc, char **argv) {
            h_convolved_signal_ref);
 
   // check result
-  bool bTestResult = sdkCompareL2fe(
+  bTestResult = sdkCompareL2fe(
       reinterpret_cast<float *>(h_convolved_signal_ref),
       reinterpret_cast<float *>(h_convolved_signal), 2 * SIGNAL_SIZE, 1e-5f);
+  free(h_convolved_signal_ref);
+#endif
 
   // Destroy CUFFT context
   checkCudaErrors(cufftDestroy(plan));
@@ -225,7 +231,6 @@ void runTest(int argc, char **argv) {
   free(h_filter_kernel);
   free(h_padded_signal);
   free(h_padded_filter_kernel);
-  free(h_convolved_signal_ref);
   checkCudaErrors(cudaFree(d_signal));
   checkCudaErrors(cudaFree(d_filter_kernel));
 
