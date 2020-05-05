@@ -274,10 +274,13 @@ endif
 
 ################################################################################
 
+BINS := simpleCUFFT simpleFFT simpleFFT-omp simpleCUFFT2D simpleFFT2D simpleFFT2D-omp
+BINS_INST := $(foreach BIN,$(BINS),$(addprefix ../../bin/$(TARGET_ARCH)/$(TARGET_OS)/$(BUILD_TYPE)/,$(BIN)))
+
 # Target rules
 all: build
 
-build: simpleCUFFT simpleFFT simpleFFT-omp simpleCUFFT2D simpleFFT2D simpleFFT2D-omp
+build: $(BINS)
 
 check.deps:
 ifeq ($(SAMPLE_ENABLED),0)
@@ -338,7 +341,7 @@ run: build
 	$(EXEC) ./simpleCUFFT
 
 clean:
-	rm -f simpleCUFFT simpleCUFFT.o
-	rm -rf ../../bin/$(TARGET_ARCH)/$(TARGET_OS)/$(BUILD_TYPE)/simpleCUFFT
+	rm -f *.o $(BINS)
+	rm -rf $(BINS_INST)
 
 clobber: clean
