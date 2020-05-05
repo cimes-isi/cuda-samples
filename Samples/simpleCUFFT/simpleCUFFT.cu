@@ -58,12 +58,6 @@ int PadData(const Complex *, Complex **, int, const Complex *, Complex **, int);
 // declaration, forward
 void runTest(int argc, char **argv);
 
-// The filter size is assumed to be a number smaller than the signal size
-// #define SIGNAL_SIZE 50
-// #define FILTER_KERNEL_SIZE 11
-#define SIGNAL_SIZE 1024
-#define FILTER_KERNEL_SIZE (SIGNAL_SIZE / 4)
-
 #define DO_CHECK_RESULT 1
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -77,24 +71,36 @@ int main(int argc, char **argv) { runTest(argc, argv); }
 void runTest(int argc, char **argv) {
   printf("[simpleCUFFT] is starting...\n");
 
+  int signal_size = 64;
+  if (argc > 1) {
+    signal_size = atoi(argv[1]);
+  }
+// The filter size is assumed to be a number smaller than the signal size
+  int filter_kernel_size = signal_size / 4;
+  if (argc > 2) {
+    filter_kernel_size = atoi(argv[2]);
+  }
+  printf("Signal size = %zu\n", signal_size);
+  printf("Filter size = %zu\n", filter_kernel_size);
+
   findCudaDevice(argc, (const char **)argv);
 
   // Allocate host memory for the signal
   Complex *h_signal =
-      reinterpret_cast<Complex *>(malloc(sizeof(Complex) * SIGNAL_SIZE));
+      reinterpret_cast<Complex *>(malloc(sizeof(Complex) * signal_size));
 
   // Initialize the memory for the signal
-  for (unsigned int i = 0; i < SIGNAL_SIZE; ++i) {
+  for (unsigned int i = 0; i < signal_size; ++i) {
     h_signal[i].x = rand() / static_cast<float>(RAND_MAX);
     h_signal[i].y = 0;
   }
 
   // Allocate host memory for the filter
   Complex *h_filter_kernel =
-      reinterpret_cast<Complex *>(malloc(sizeof(Complex) * FILTER_KERNEL_SIZE));
+      reinterpret_cast<Complex *>(malloc(sizeof(Complex) * filter_kernel_size));
 
   // Initialize the memory for the filter
-  for (unsigned int i = 0; i < FILTER_KERNEL_SIZE; ++i) {
+  for (unsigned int i = 0; i < filter_kernel_size; ++i) {
     h_filter_kernel[i].x = rand() / static_cast<float>(RAND_MAX);
     h_filter_kernel[i].y = 0;
   }
@@ -103,8 +109,8 @@ void runTest(int argc, char **argv) {
   Complex *h_padded_signal;
   Complex *h_padded_filter_kernel;
   int new_size =
-      PadData(h_signal, &h_padded_signal, SIGNAL_SIZE, h_filter_kernel,
-              &h_padded_filter_kernel, FILTER_KERNEL_SIZE);
+      PadData(h_signal, &h_padded_signal, signal_size, h_filter_kernel,
+              &h_padded_filter_kernel, filter_kernel_size);
   int mem_size = sizeof(Complex) * new_size;
 
   // Allocate CUDA events that we'll use for timing
@@ -209,16 +215,16 @@ void runTest(int argc, char **argv) {
 #if DO_CHECK_RESULT
   // Allocate host memory for the convolution result
   Complex *h_convolved_signal_ref =
-      reinterpret_cast<Complex *>(malloc(sizeof(Complex) * SIGNAL_SIZE));
+      reinterpret_cast<Complex *>(malloc(sizeof(Complex) * signal_size));
 
   // Convolve on the host
-  Convolve(h_signal, SIGNAL_SIZE, h_filter_kernel, FILTER_KERNEL_SIZE,
+  Convolve(h_signal, signal_size, h_filter_kernel, filter_kernel_size,
            h_convolved_signal_ref);
 
   // check result
   bTestResult = sdkCompareL2fe(
       reinterpret_cast<float *>(h_convolved_signal_ref),
-      reinterpret_cast<float *>(h_convolved_signal), 2 * SIGNAL_SIZE, 1e-5f);
+      reinterpret_cast<float *>(h_convolved_signal), 2 * signal_size, 1e-5f);
   free(h_convolved_signal_ref);
 #endif
 

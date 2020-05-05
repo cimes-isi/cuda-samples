@@ -47,9 +47,6 @@ typedef float2 Complex;
 // declaration, forward
 void runTest(int argc, char **argv);
 
-#define SIGNAL_SIZE_X 64
-#define SIGNAL_SIZE_Y 64
-
 ////////////////////////////////////////////////////////////////////////////////
 // Program main
 ////////////////////////////////////////////////////////////////////////////////
@@ -61,15 +58,26 @@ int main(int argc, char **argv) { runTest(argc, argv); }
 void runTest(int argc, char **argv) {
   printf("[simpleCUFFT] is starting...\n");
 
+  int signal_size_x = 64;
+  if (argc > 1) {
+    signal_size_x = atoi(argv[1]);
+  }
+  int signal_size_y = signal_size_x;
+  if (argc > 2) {
+    signal_size_y = atoi(argv[2]);
+  }
+  printf("Signal size X = %zu\n", signal_size_x);
+  printf("Signal size Y = %zu\n", signal_size_y);
+
   findCudaDevice(argc, (const char **)argv);
 
   // Allocate host memory for the signal
-  const int mem_size = sizeof(Complex) * SIGNAL_SIZE_X * SIGNAL_SIZE_Y;
+  const int mem_size = sizeof(Complex) * signal_size_x * signal_size_y;
   Complex *h_signal =
       reinterpret_cast<Complex *>(malloc(mem_size));
 
   // Initialize the memory for the signal
-  for (unsigned int i = 0; i < SIGNAL_SIZE_X * SIGNAL_SIZE_Y; ++i) {
+  for (unsigned int i = 0; i < signal_size_x * signal_size_y; ++i) {
     h_signal[i].x = rand() / static_cast<float>(RAND_MAX);
     h_signal[i].y = 0;
   }
@@ -99,7 +107,7 @@ void runTest(int argc, char **argv) {
 
   // CUFFT plan simple API
   cufftHandle plan;
-  checkCudaErrors(cufftPlan2d(&plan, SIGNAL_SIZE_X, SIGNAL_SIZE_Y, CUFFT_C2C));
+  checkCudaErrors(cufftPlan2d(&plan, signal_size_x, signal_size_y, CUFFT_C2C));
 
   // Record the start_kernel event
   checkCudaErrors(cudaEventRecord(start_kernel, NULL));
