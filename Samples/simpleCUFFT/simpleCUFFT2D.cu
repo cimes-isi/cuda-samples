@@ -56,7 +56,7 @@ int main(int argc, char **argv) { runTest(argc, argv); }
 //! Run a simple test for CUDA
 ////////////////////////////////////////////////////////////////////////////////
 void runTest(int argc, char **argv) {
-  printf("[simpleCUFFT] is starting...\n");
+  printf("[simpleCUFFT2D] is starting...\n");
 
   int signal_size_x = 64;
   if (argc > 1) {
